@@ -1,0 +1,46 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="PackedScene" path="res://art/units/rome/hastatus_v1/models/hastatus_v1.glb" id="1_model"]
+
+[sub_resource type="Environment" id="Environment_studio"]
+background_mode = 1
+background_color = Color(0.12, 0.14, 0.17, 1)
+ambient_light_source = 3
+ambient_light_color = Color(0.82, 0.86, 0.92, 1)
+ambient_light_energy = 0.2
+
+[sub_resource type="StandardMaterial3D" id="Material_floor"]
+albedo_color = Color(0.25, 0.27, 0.31, 1)
+roughness = 1.0
+
+[sub_resource type="PlaneMesh" id="Mesh_floor"]
+material = SubResource("Material_floor")
+size = Vector2(100, 100)
+
+[node name="HastatusPreview" type="Node3D"]
+
+[node name="Hastatus" parent="." instance=ExtResource("1_model")]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_studio")
+
+[node name="KeyLight" type="DirectionalLight3D" parent="."]
+rotation_degrees = Vector3(-50, -35, 0)
+light_energy = 0.45
+shadow_enabled = true
+directional_shadow_max_distance = 12.0
+
+[node name="FillLight" type="DirectionalLight3D" parent="."]
+rotation_degrees = Vector3(-25, 130, 0)
+light_energy = 0.1
+
+[node name="Floor" type="MeshInstance3D" parent="."]
+position = Vector3(0, -0.003, 0)
+mesh = SubResource("Mesh_floor")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+position = Vector3(2.6, 3, 7)
+rotation = Vector3(-0.2217, 0.3341, 0)
+projection = 1
+size = 2.96
+current = true
