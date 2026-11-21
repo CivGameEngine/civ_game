@@ -1,6 +1,6 @@
 class_name MapView
 extends Node3D
-## Отрисовка карты: террасы, вода, реки, горы, леса, маркеры ресурсов, туман войны.
+## Отрисовка карты: плоские тайлы, вода, реки, горные массивы, леса и туман войны.
 ## Карта зациклена: рисуется в трёх копиях (слева, по центру, справа), камера
 ## «перескакивает» через шов незаметно.
 
@@ -13,6 +13,8 @@ const FLAG_SHEET := preload("res://art/map_flags/nature_flags.png")
 const BIOME_ATLAS := preload("res://art/terrain/biomes/biome_atlas.png")
 const LandscapeModels := preload("res://view/map/landscape_models.gd")
 const LANDSCAPE_SHADER := preload("res://view/map/shaders/landscape_model.gdshader")
+const MASSIF_SHADER := preload("res://view/map/shaders/mountain_massif.gdshader")
+const MountainMassifs := preload("res://view/map/mountain_massifs.gd")
 
 var game: Game
 var world_width: float
@@ -34,6 +36,10 @@ var _river_mat: ShaderMaterial
 var _border_mat: ShaderMaterial
 var _improvement_meshes := {}
 var _landscape_meshes: Dictionary = {}
+var _massif_mesh: ArrayMesh
+var _massif_plan: Dictionary = {}
+var _massif_relief := PackedByteArray()
+var _massif_terrain := PackedStringArray()
 
 
 func build(g: Game) -> void:
@@ -44,6 +50,10 @@ func build(g: Game) -> void:
 	_materials.clear()
 	_layers.clear()
 	_landscape_meshes.clear()
+	_massif_mesh = null
+	_massif_plan.clear()
+	_massif_relief.clear()
+	_massif_terrain.clear()
 	var map := game.state.map
 	world_width = map.grid.world_width(MapStyle.HEX_SIZE)
 	fog_image = Image.create(map.width, map.height, false, Image.FORMAT_RGBA8)
@@ -138,16 +148,65 @@ func _landscape_mesh(id: String) -> ArrayMesh:
 		for surface in mesh.get_surface_count():
 			var source := original.surface_get_material(surface) as StandardMaterial3D
 			var material := _make_material(LANDSCAPE_SHADER)
-			if source != null:
-				material.set_shader_parameter("base_color", source.albedo_color)
-				material.set_shader_parameter("material_roughness", source.roughness)
-				material.set_shader_parameter("has_texture", source.albedo_texture != null)
-				if source.albedo_texture != null:
-					material.set_shader_parameter("albedo_texture", source.albedo_texture)
+			_copy_pbr(source, material)
 			mesh.surface_set_material(surface, material)
 		mesh.set_meta("source_asset", id)
 		_landscape_meshes[id] = mesh
 	return _landscape_meshes[id]
+
+
+func _copy_pbr(source: StandardMaterial3D, material: ShaderMaterial) -> void:
+	if source == null:
+		return
+	material.set_shader_parameter("base_color", source.albedo_color)
+	material.set_shader_parameter("material_roughness", source.roughness)
+	material.set_shader_parameter("has_texture", source.albedo_texture != null)
+	material.set_shader_parameter("albedo_texture", source.albedo_texture)
+	material.set_shader_parameter("has_normal", source.normal_enabled and source.normal_texture != null)
+	material.set_shader_parameter("normal_texture", source.normal_texture)
+	material.set_shader_parameter("normal_scale", source.normal_scale)
+	material.set_shader_parameter("has_roughness", source.roughness_texture != null)
+	material.set_shader_parameter("roughness_texture", source.roughness_texture)
+	material.set_shader_parameter("roughness_channel", source.roughness_texture_channel)
+
+
+func _refresh_massifs() -> void:
+	var map := game.state.map
+	if not _massif_plan.is_empty() and _massif_relief == map.relief and _massif_terrain == map.terrain:
+		return
+	var cfg: Dictionary = LandscapeModels.config()["mountain_massif"]
+	var manifest: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(str(cfg["manifest"])))
+	_massif_plan = MountainMassifs.build(map, cfg, manifest["footprint_axial"])
+	_massif_relief = map.relief.duplicate()
+	_massif_terrain = map.terrain.duplicate()
+	var mask := ImageTexture.create_from_image(_massif_plan["image"])
+	if _massif_mesh == null:
+		var id: String = cfg["asset"]
+		var original := LandscapeModels.mesh(id)
+		# Импортные LOD строились до адаптации контура. Их редкие вершины дают
+		# занавесы на склонах, поэтому здесь сохраняем исходную геометрию 45k.
+		_massif_mesh = ArrayMesh.new()
+		for surface in original.get_surface_count():
+			_massif_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, original.surface_get_arrays(surface))
+			var material := _make_material(MASSIF_SHADER)
+			_copy_pbr(original.surface_get_material(surface) as StandardMaterial3D, material)
+			material.set_shader_parameter("map_size", Vector2(map.width, map.height))
+			material.set_shader_parameter("hex_size", MapStyle.HEX_SIZE)
+			material.set_shader_parameter("edge_fade", float(cfg["edge_fade"]))
+			material.set_shader_parameter("edge_albedo", load(str(cfg["edge_albedo"])))
+			var rect: Array = cfg["fit_rect"]
+			material.set_shader_parameter("fit_rect", Vector4(float(rect[0]), float(rect[1]), float(rect[2]), float(rect[3])))
+			_massif_mesh.surface_set_material(surface, material)
+		_massif_mesh.set_meta("source_asset", id)
+	for surface in _massif_mesh.get_surface_count():
+		_massif_mesh.surface_get_material(surface).set_shader_parameter("mountain_mask", mask)
+	var items: Array = []
+	for group in _massif_plan["groups"]:
+		# Номер группы хранится как float32 в INSTANCE_CUSTOM, без цветового сжатия.
+		items.append([group["transform"], Color.WHITE, Color(float(group["id"]), 1.0 if group["native"] else 0.0, 0, 0)])
+	var mm := _new_multimesh(_massif_mesh, items.size())
+	_fill(mm, items)
+	_set_layer("mountain_massifs", mm, null)
 
 
 func _landscape_item(items: Dictionary, group: String, tile: int, scale: float = 1.0,
@@ -169,8 +228,6 @@ func refresh_landscape_models() -> void:
 	var items := {}
 	for tile in map.size():
 		if map.is_mountain(tile):
-			_landscape_item(items, "snow_mountains" if map.terrain[tile] == "SNOW" else "mountains",
-				tile, float(cfg["mountain_scale"]))
 			continue
 		if map.is_water(tile) or map.district[tile] != "":
 			continue
@@ -209,6 +266,7 @@ func refresh_landscape_models() -> void:
 		var mm := _new_multimesh(mesh, instances.size())
 		_fill(mm, instances)
 		_set_layer("landscape_" + id, mm, null)
+	_refresh_massifs()
 
 func _new_multimesh(mesh: Mesh, count: int) -> MultiMesh:
 	var mm := MultiMesh.new()
@@ -229,25 +287,6 @@ func _tile_pos(i: int) -> Vector3:
 func _custom(i: int) -> Color:
 	var uv := TerrainMeshBuilder.tile_uv(game.state.map.grid, i)
 	return Color(uv.x, uv.y, 0, 0)
-
-
-func _build_mountains(map: GameMap) -> MultiMesh:
-	var items: Array = []
-	for i in map.size():
-		if not map.is_mountain(i):
-			continue
-		var base := _tile_pos(i)
-		var peaks := 1 + int(MapStyle.hash01(i, 3) * 2.5)
-		for p in peaks:
-			var ang := MapStyle.hash01(i, 10 + p) * TAU
-			var r := 0.0 if p == 0 else 0.42
-			var scale := (1.0 if p == 0 else 0.6) * (0.85 + MapStyle.hash01(i, 20 + p) * 0.3)
-			var t := Transform3D(Basis(Vector3.UP, MapStyle.hash01(i, 30 + p) * TAU).scaled(Vector3.ONE * scale),
-				base + Vector3(cos(ang) * r, 0, sin(ang) * r))
-			items.append([t, Color.WHITE, _custom(i)])
-	var mm := _new_multimesh(TerrainMeshBuilder.build_mountain_mesh(), items.size())
-	_fill(mm, items)
-	return mm
 
 
 ## Плоские деревья из верхних двух рядов временного атласа. Варианты и позиции

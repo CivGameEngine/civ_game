@@ -2,10 +2,7 @@
 shader_type spatial;
 render_mode diffuse_lambert_wrap, specular_disabled, cull_disabled;
 #include "res://view/map/shaders/fog.gdshaderinc"
-uniform sampler2D albedo_texture : source_color, filter_linear_mipmap, repeat_enable;
-uniform bool has_texture = false;
-uniform vec4 base_color : source_color = vec4(1.0);
-uniform float material_roughness = 0.9;
+#include "res://view/map/shaders/landscape_pbr.gdshaderinc"
 varying flat float fog_state;
 
 void vertex() {
@@ -17,8 +14,7 @@ void vertex() {
 
 void fragment() {
 	if (fog_state < 0.25) { discard; }
-	vec3 color = base_color.rgb;
-	if (has_texture) { color *= texture(albedo_texture, UV).rgb; }
-	ALBEDO = apply_fog_tint(color, fog_state);
-	ROUGHNESS = material_roughness;
+	ALBEDO = apply_fog_tint(landscape_albedo(UV), fog_state);
+	ROUGHNESS = landscape_roughness(UV);
+	if (has_normal) { NORMAL_MAP = texture(normal_texture, UV).rgb; NORMAL_MAP_DEPTH = normal_scale; }
 }

@@ -10,7 +10,9 @@ static func config() -> Dictionary:
 
 static func mesh(id: String) -> ArrayMesh:
 	if not _meshes.has(id):
-		var scene := load(str(config()["model_dir"]) + id + ".gltf") as PackedScene
+		var files: Dictionary = config().get("model_files", {})
+		var path: String = files.get(id, str(config()["model_dir"]) + id + ".gltf")
+		var scene := load(path) as PackedScene
 		if scene == null:
 			push_error("Не удалось загрузить модель ландшафта: " + id)
 			return null

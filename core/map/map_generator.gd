@@ -145,9 +145,7 @@ func _make_land_and_relief() -> void:
 		mountain_score[i] = _cyl_noise(ridge, i) * 0.7 + (elevation[i] - sea_level) * 0.6
 	var by_score := land.duplicate()
 	by_score.sort_custom(func(a, b): return mountain_score[a] > mountain_score[b])
-	var mountains := int(land.size() * 0.07)
-	for k in mountains:
-		map.relief[by_score[k]] = GameMap.RELIEF_MOUNTAIN
+	_place_mountain_massifs(by_score, land.size())
 	# Холмы: около гор и по отдельному шуму.
 	for i in land:
 		if map.relief[i] != GameMap.RELIEF_FLAT:
@@ -160,6 +158,42 @@ func _make_land_and_relief() -> void:
 		var p := _cyl_noise(hill_noise, i)
 		if (near_mountain and rng.chance(0.45)) or p > 0.66:
 			map.relief[i] = GameMap.RELIEF_HILLS
+
+
+## Цельные горные участки вместо россыпи отдельных непроходимых клеток.
+## Контур — игровые данные, без зависимостей ядра от моделей или отображения.
+func _place_mountain_massifs(candidates: Array, land_count: int) -> void:
+	var cfg: Dictionary = data.setup["mountain_generation"]
+	var footprint: Array = cfg["footprint_axial"]
+	var target := roundi(land_count * float(cfg["land_fraction"]) / footprint.size())
+	var placed := 0
+	for anchor in candidates:
+		if placed >= target:
+			break
+		for variant in HexGrid.DIR_COUNT:
+			var steps := (int(anchor) + variant) % HexGrid.DIR_COUNT
+			var tiles: Array[int] = []
+			for cell in footprint:
+				var offset := Vector2i(int(cell[0]), int(cell[1]))
+				for step in steps:
+					offset = Vector2i(-offset.y, offset.x + offset.y)
+				var tile := grid.index_of_axial(grid.axial_of(int(anchor)) + offset)
+				if tile < 0 or map.is_water(tile) or map.is_mountain(tile) or tiles.has(tile):
+					break
+				var adjacent := false
+				for neighbor in grid.neighbors(tile):
+					if map.is_mountain(neighbor):
+						adjacent = true
+						break
+				if adjacent:
+					break
+				tiles.append(tile)
+			if tiles.size() != footprint.size():
+				continue
+			for tile in tiles:
+				map.relief[tile] = GameMap.RELIEF_MOUNTAIN
+			placed += 1
+			break
 
 
 # --- Этап 3: климат и ландшафт ------------------------------------------------------

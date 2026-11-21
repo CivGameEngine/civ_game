@@ -1,5 +1,9 @@
 {
   "_doc": "Параметры настройки партии (ГДД 1).",
+  "mountain_generation": {
+    "land_fraction": 0.07,
+    "footprint_axial": [[-1,0],[0,0],[1,0],[2,0],[0,-1],[1,-1],[2,-1],[-1,1],[0,1]]
+  },
   "victory": {
     "standard_turn_limit": 500,
     "score_weights": {"cities": 5, "population": 1, "districts": 2, "buildings": 1, "technologies": 3, "civics": 3}

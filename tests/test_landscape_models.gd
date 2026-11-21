@@ -14,7 +14,8 @@ func test_map_uses_textured_models_with_fog_and_stable_placement() -> void:
 	check_eq(g.state.to_dict(), state_before, "Отрисовка не меняет симуляцию")
 	check(not view._layers.has("crowns") and not view._layers.has("trunks") \
 		and not view._layers.has("mountains"), "Примитивы не подменяют новые модели")
-	check(view._layers.has("landscape_mountain_snow_a"), "В снегах снежная гора")
+	check(view._layers.has("mountain_massifs"), "Горы заменены общим текстурированным массивом")
+	check(not view._layers.has("landscape_mountain_snow_a"), "Старые снежные горы отключены")
 	var transforms := {}
 	for key in view._layers:
 		if not str(key).begins_with("landscape_"):

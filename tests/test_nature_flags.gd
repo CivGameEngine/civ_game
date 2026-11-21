@@ -39,7 +39,8 @@ func test_flags_respect_exploration_technology_and_removed_feature() -> void:
 	check_eq(layer.multimesh.instance_count, 1, "Удаление особенности не убрало ресурсный флаг")
 	check_eq(_forest_count(view), trees_before - 1, "Исчезла модель только вырубленного тайла")
 	check(not view._layers.has("forest_sprites") and not view._layers.has("resources"), "Плоские деревья и старые маркеры отключены")
-	check(view._layers.keys().any(func(key: String) -> bool: return key.begins_with("landscape_mountain")), "Горы используют модели Blender")
+	check(view._layers.has("mountain_massifs"), "Горы используют новый массив Blender")
+	check_eq(view._layers["mountain_massifs"][1].multimesh.instance_count, 1)
 	view.free()
 
 func _forest_count(view: MapView) -> int:
