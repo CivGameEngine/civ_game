@@ -1,16 +1,21 @@
 extends SceneTree
-## Проверка отдельного горного массива. --preview дополнительно сохраняет рендер Godot.
+## Проверка массива. --textured выбирает UV/PBR-вариант, --preview сохраняет рендер.
 const BASE := "res://art/landscape/massifs/"
+var _base := BASE
+var _textured := false
 var _frames := 0
 var _preview := false
 var _errors: PackedStringArray = []
 
 func _initialize() -> void:
+	_textured = OS.get_cmdline_user_args().has("--textured")
+	if _textured:
+		_base += "textured_v1/"
 	call_deferred("_check")
 
 func _check() -> void:
-	var manifest: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(BASE + "manifest.json"))
-	var packed := load(BASE + str(manifest["model"])) as PackedScene
+	var manifest: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(_base + "manifest.json"))
+	var packed := load(_base + str(manifest["model"])) as PackedScene
 	if packed == null:
 		push_error("Горный массив не импортирован")
 		quit(1)
@@ -31,8 +36,21 @@ func _check() -> void:
 		_expect(absf(bounds.position.y) < 0.001, "Основание не на общей плоскости Y=0")
 		for surface in object.mesh.get_surface_count():
 			var mat := object.mesh.surface_get_material(surface) as StandardMaterial3D
-			_expect(mat != null and mat.albedo_texture == null, "Ожидался материал без текстур")
+			if _textured:
+				_expect(mat != null and mat.albedo_texture != null, "Нет текстуры цвета")
+				if mat != null:
+					_expect(mat.normal_enabled and mat.normal_texture != null, "Нет карты нормалей")
+					_expect(mat.roughness_texture != null, "Нет карты шероховатости")
+			else:
+				_expect(mat != null and mat.albedo_texture == null, "Ожидался материал без текстур")
 			var arrays := object.mesh.surface_get_arrays(surface)
+			if _textured:
+				var uvs: PackedVector2Array = arrays[Mesh.ARRAY_TEX_UV]
+				_expect(not uvs.is_empty(), "Нет UV-развёртки")
+				for uv in uvs:
+					if not uv.is_finite() or uv.x < -0.001 or uv.y < -0.001 or uv.x > 1.001 or uv.y > 1.001:
+						_expect(false, "Некорректные UV-координаты")
+						break
 			var indices: PackedInt32Array = arrays[Mesh.ARRAY_INDEX]
 			triangles += indices.size() / 3
 	_expect(triangles == int(manifest["export_triangles"]), "Количество треугольников не совпадает с экспортом")
@@ -46,14 +64,14 @@ func _check() -> void:
 		quit(0 if _errors.is_empty() else 1)
 		return
 	root.size = Vector2i(1600, 1100)
-	var scene: Node3D = load(BASE + "preview.tscn").instantiate()
+	var scene: Node3D = load(_base + "preview.tscn").instantiate()
 	root.add_child(scene)
 
 func _process(_delta: float) -> bool:
 	if _preview:
 		_frames += 1
 		if _frames == 30:
-			var error := root.get_texture().get_image().save_png(BASE + "previews/massif_godot.png")
+			var error := root.get_texture().get_image().save_png(_base + "previews/massif_godot.png")
 			print("Рендер Godot: ", error_string(error))
 			quit(0 if error == OK else 1)
 	return false
