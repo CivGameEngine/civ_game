@@ -1,0 +1,104 @@
+{
+  "id": "mountain_massif_9hex_v1",
+  "prototype": true,
+  "source": "source/mountain_massif_9hex_v1.blend",
+  "model": "models/mountain_massif_9hex_v1.glb",
+  "hex_radius": 1.0,
+  "footprint_axial": [
+    [
+      -1,
+      0
+    ],
+    [
+      0,
+      0
+    ],
+    [
+      1,
+      0
+    ],
+    [
+      2,
+      0
+    ],
+    [
+      0,
+      -1
+    ],
+    [
+      1,
+      -1
+    ],
+    [
+      2,
+      -1
+    ],
+    [
+      -1,
+      1
+    ],
+    [
+      0,
+      1
+    ]
+  ],
+  "footprint_blender_xy": [
+    [
+      -1,
+      0
+    ],
+    [
+      0,
+      0
+    ],
+    [
+      1,
+      0
+    ],
+    [
+      2,
+      0
+    ],
+    [
+      -1,
+      1
+    ],
+    [
+      0,
+      1
+    ],
+    [
+      1,
+      1
+    ],
+    [
+      0,
+      -1
+    ],
+    [
+      1,
+      -1
+    ]
+  ],
+  "source_triangles": 209088,
+  "export_triangles": 45000,
+  "textures": [],
+  "connected_components": 1,
+  "closed_manifold": true,
+  "bounds_export_blender_z_up": {
+    "min": [-2.597182035446167, -2.4818499088287354, -0.000004325795543991262],
+    "max": [4.3301215171813965, 2.4835004806518555, 2.8146800994873047]
+  },
+  "bounds_blender_z_up": {
+    "min": [
+      -2.598076105117798,
+      -2.5,
+      0.0
+    ],
+    "max": [
+      4.330127239227295,
+      2.5,
+      2.8146800994873047
+    ]
+  }
+}

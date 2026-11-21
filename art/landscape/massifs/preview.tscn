@@ -1,0 +1,37 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="PackedScene" path="res://art/landscape/massifs/models/mountain_massif_9hex_v1.glb" id="1_model"]
+
+[sub_resource type="Environment" id="Environment_studio"]
+background_mode = 1
+background_color = Color(0.1, 0.12, 0.15, 1)
+ambient_light_source = 3
+ambient_light_color = Color(0.78, 0.82, 0.88, 1)
+ambient_light_energy = 0.12
+
+[sub_resource type="CameraAttributesPractical" id="Camera_attributes"]
+
+[node name="MountainMassifPreview" type="Node3D"]
+
+[node name="Massif" parent="." instance=ExtResource("1_model")]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_studio")
+
+[node name="KeyLight" type="DirectionalLight3D" parent="."]
+rotation_degrees = Vector3(-50, -35, 0)
+light_energy = 0.3
+shadow_enabled = true
+directional_shadow_max_distance = 30.0
+
+[node name="FillLight" type="DirectionalLight3D" parent="."]
+rotation_degrees = Vector3(-25, 130, 0)
+light_energy = 0.07
+
+[node name="Camera3D" type="Camera3D" parent="."]
+position = Vector3(3.2, 5.5, 10)
+rotation = Vector3(-0.407, 0.254, 0)
+projection = 1
+size = 6.0
+current = true
+attributes = SubResource("Camera_attributes")
