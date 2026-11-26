@@ -28,7 +28,7 @@ func _process(_delta: float) -> bool:
 		var transform: Transform3D = largest["transform"]
 		var center := transform * Vector3(-.1, 0, -.2)
 		center.y = 0
-		_main.camera_rig.focus(center)
+		_main.camera_rig.focus(center * MapStyle.WORLD_HEX_RADIUS)
 		_main.camera_rig.distance = 18
 		_main.camera_rig.target_distance = 18
 		_main.camera_rig._update_camera()

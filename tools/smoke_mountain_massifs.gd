@@ -51,10 +51,10 @@ func _setup() -> void:
 	_stage.add_child(light)
 	_camera = Camera3D.new()
 	_camera.projection = Camera3D.PROJECTION_ORTHOGONAL
-	_camera.size = 8
+	_camera.size = 8 * MapStyle.WORLD_HEX_RADIUS
 	_stage.add_child(_camera)
 	var center := grid.world_position(anchor)
-	var target := Vector3(center.x + .7, 0, center.y)
+	var target := Vector3(center.x + .7, 0, center.y) * MapStyle.WORLD_HEX_RADIUS
 	_camera.position = target + Vector3.UP * 15
 	_camera.look_at(target, Vector3.FORWARD)
 	_camera.current = true
@@ -81,6 +81,7 @@ func _process(_delta: float) -> bool:
 				continue
 			colored += 1
 			var point := _camera.project_ray_origin(Vector2(x + .5, y + .5))
+			point /= MapStyle.WORLD_HEX_RADIUS
 			var tile := grid.index_at_world(point.x, point.z)
 			if tile < 0:
 				wrong += 1

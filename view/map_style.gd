@@ -3,7 +3,9 @@ extends RefCounted
 ## Визуальные параметры карты: общая плоскость и палитра. Временные цвета до
 ## появления рисованных текстур — их можно смело менять здесь.
 
+## Локальный радиус для геометрии и моделей; мировой радиус задаёт шаг игровой сетки.
 const HEX_SIZE := 1.0
+const WORLD_HEX_RADIUS := 0.5
 const BIOME_ORDER := ["GRASS", "PLAINS", "DESERT", "TUNDRA", "SNOW", "COAST", "LAKE", "OCEAN"]
 
 static func biome_index(map: GameMap, tile: int) -> int:

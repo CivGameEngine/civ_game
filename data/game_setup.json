@@ -9,12 +9,12 @@
     "score_weights": {"cities": 5, "population": 1, "districts": 2, "buildings": 1, "technologies": 3, "civics": 3}
   },
   "map_sizes": [
-    {"id": "DUEL",     "name": "Дуэль",       "width": 44,  "height": 26, "civs": 2,  "city_states": 3},
-    {"id": "TINY",     "name": "Крошечная",   "width": 60,  "height": 38, "civs": 4,  "city_states": 6},
-    {"id": "SMALL",    "name": "Малая",       "width": 74,  "height": 46, "civs": 6,  "city_states": 9},
-    {"id": "STANDARD", "name": "Стандартная", "width": 84,  "height": 54, "civs": 8,  "city_states": 12},
-    {"id": "LARGE",    "name": "Большая",     "width": 96,  "height": 60, "civs": 10, "city_states": 15},
-    {"id": "HUGE",     "name": "Огромная",    "width": 106, "height": 66, "civs": 12, "city_states": 18}
+    {"id": "DUEL",     "name": "Дуэль",       "width": 88,  "height": 52, "civs": 2,  "city_states": 3},
+    {"id": "TINY",     "name": "Крошечная",   "width": 120,  "height": 76, "civs": 4,  "city_states": 6},
+    {"id": "SMALL",    "name": "Малая",       "width": 148,  "height": 92, "civs": 6,  "city_states": 9},
+    {"id": "STANDARD", "name": "Стандартная", "width": 168,  "height": 108, "civs": 8,  "city_states": 12},
+    {"id": "LARGE",    "name": "Большая",     "width": 192,  "height": 120, "civs": 10, "city_states": 15},
+    {"id": "HUGE",     "name": "Огромная",    "width": 212, "height": 132, "civs": 12, "city_states": 18}
   ],
   "game_speeds": [
     {"id": "ONLINE",   "name": "Сетевая",     "multiplier": 0.5},

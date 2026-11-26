@@ -52,18 +52,22 @@ func _ready() -> void:
 	map_view = MapView.new()
 	map_view.name = "Map"
 	add_child(map_view)
+	var pieces := Node3D.new()
+	pieces.name = "MapPieces"
+	pieces.scale = Vector3.ONE * MapStyle.WORLD_HEX_RADIUS
+	add_child(pieces)
 	overlay = OverlayView.new()
 	overlay.name = "Overlay"
-	add_child(overlay)
+	pieces.add_child(overlay)
 	cities_view = CitiesView.new()
 	cities_view.name = "Cities"
-	add_child(cities_view)
+	pieces.add_child(cities_view)
 	districts_view = DistrictsView.new()
 	districts_view.name = "Districts"
-	add_child(districts_view)
+	pieces.add_child(districts_view)
 	units_view = UnitsView.new()
 	units_view.name = "Units"
-	add_child(units_view)
+	pieces.add_child(units_view)
 	camera_rig = CameraRig.new()
 	camera_rig.name = "CameraRig"
 	add_child(camera_rig)
@@ -160,7 +164,7 @@ func _attach_game(g: Game) -> void:
 	hud.game = game
 	map_view.build(game)
 	var map := game.state.map
-	camera_rig.setup(map_view.world_width, map.grid.world_position(map.size() - 1).y + 1.0)
+	camera_rig.setup(map_view.world_width, map_view.tile_world(map.size() - 1).z)
 	units_view.setup(game, map_view)
 	cities_view.setup(game, map_view)
 	districts_view.setup(game, map_view)

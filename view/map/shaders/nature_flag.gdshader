@@ -11,6 +11,7 @@ void vertex() {
 	int index = int(floor(INSTANCE_CUSTOM.z * 63.0 + 0.5));
 	vec4 region = regions[index];
 	atlas_uv = region.xy + UV * region.zw;
+	VERTEX *= length(MODEL_MATRIX[0].xyz);
 	// Флаг всегда обращён к камере, но остаётся привязан к тайлу.
 	MODELVIEW_MATRIX = VIEW_MATRIX * mat4(INV_VIEW_MATRIX[0], INV_VIEW_MATRIX[1],
 		INV_VIEW_MATRIX[2], MODEL_MATRIX[3]);

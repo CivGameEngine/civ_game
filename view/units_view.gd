@@ -174,7 +174,7 @@ func refresh(viewer: Player, cam_x: float) -> void:
 
 
 func _unit_pos(u: Unit, cam_x: float) -> Vector3:
-	var p := map_view.tile_world(u.tile, cam_x)
+	var p := map_view.tile_local(u.tile, cam_x)
 	# Гражданский и боевой в одной клетке стоят рядом.
 	if game.state.units_at(u.tile).size() > 1:
 		p.x += -0.22 if Movement.layer(game, u.type) == "CIVILIAN" else 0.2

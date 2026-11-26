@@ -227,7 +227,7 @@ func refresh(viewer: Player, cam_x: float) -> void:
 				_signature[tile] = sig
 			var node: Node3D = _nodes[tile]
 			node.visible = map_view.reveal_all or viewer.is_revealed(tile)
-			node.position = map_view.tile_world(tile, cam_x)
+			node.position = map_view.tile_local(tile, cam_x)
 	for tile in _nodes.keys():
 		if not alive.has(tile):
 			_nodes[tile].queue_free()

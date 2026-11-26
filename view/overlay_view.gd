@@ -56,7 +56,7 @@ func show_hover(tile: int, cam_x: float) -> void:
 		_hover.visible = false
 		return
 	_hover.visible = true
-	_hover.position = map_view.tile_world(tile, cam_x) + Vector3(0, 0.025, 0)
+	_hover.position = map_view.tile_local(tile, cam_x) + Vector3(0, 0.025, 0)
 
 
 var _city_root: Node3D = null
@@ -77,7 +77,7 @@ func show_city(game: Game, city: City, cam_x: float) -> void:
 		var mi := MeshInstance3D.new()
 		mi.mesh = worker
 		mi.material_override = wm
-		mi.position = map_view.tile_world(t, cam_x) + Vector3(-0.3, 0.25, -0.3)
+		mi.position = map_view.tile_local(t, cam_x) + Vector3(-0.3, 0.25, -0.3)
 		_city_root.add_child(mi)
 	if city.owner != game.state.current_player:
 		return
@@ -101,7 +101,7 @@ func show_city(game: Game, city: City, cam_x: float) -> void:
 		label.modulate = Color(1.0, 0.86, 0.35) if treasury >= cost else Color(0.7, 0.7, 0.7)
 		label.outline_modulate = Color(0.1, 0.08, 0.02)
 		label.no_depth_test = true
-		label.position = map_view.tile_world(t, cam_x) + Vector3(0, 0.3, 0)
+		label.position = map_view.tile_local(t, cam_x) + Vector3(0, 0.3, 0)
 		_city_root.add_child(label)
 
 
@@ -125,7 +125,7 @@ func show_placement(game: Game, city: City, type: String, cam_x: float) -> void:
 	var valid := WonderRules.valid_tiles(game, city, type.substr(7)) if wonder_mode \
 		else DistrictRules.valid_tiles(game, city, type)
 	for t in valid:
-		var pos := map_view.tile_world(t, cam_x)
+		var pos := map_view.tile_local(t, cam_x)
 		var mi := MeshInstance3D.new()
 		mi.mesh = mesh
 		mi.material_override = mat
@@ -212,7 +212,7 @@ func show_path(path: Array, cam_x: float) -> void:
 	clear_path()
 	for k in path.size():
 		var step: Pathfinder.Step = path[k]
-		var p := map_view.tile_world(step.tile, cam_x) + Vector3(0, 0.12, 0)
+		var p := map_view.tile_local(step.tile, cam_x) + Vector3(0, 0.12, 0)
 		var dot := MeshInstance3D.new()
 		dot.mesh = _dot_mesh
 		dot.material_override = _dot_mat if step.turn == 0 else _dot_mat_far

@@ -44,6 +44,7 @@ var _massif_terrain := PackedStringArray()
 
 func build(g: Game) -> void:
 	game = g
+	viewer = null   # Туман предыдущей партии мог иметь другие размеры.
 	for c in get_children():
 		c.queue_free()
 	_copies.clear()
@@ -55,7 +56,7 @@ func build(g: Game) -> void:
 	_massif_relief.clear()
 	_massif_terrain.clear()
 	var map := game.state.map
-	world_width = map.grid.world_width(MapStyle.HEX_SIZE)
+	world_width = map.grid.world_width(MapStyle.WORLD_HEX_RADIUS)
 	fog_image = Image.create(map.width, map.height, false, Image.FORMAT_RGBA8)
 	fog_image.fill(Color.BLACK)
 	fog_texture = ImageTexture.create_from_image(fog_image)
@@ -79,6 +80,7 @@ func build(g: Game) -> void:
 	for k in [-1, 0, 1]:
 		var copy := Node3D.new()
 		copy.name = "Copy%d" % (k + 1)
+		copy.scale = Vector3.ONE * MapStyle.WORLD_HEX_RADIUS
 		copy.position.x = k * world_width
 		add_child(copy)
 		_copies.append(copy)
@@ -191,7 +193,7 @@ func _refresh_massifs() -> void:
 			var material := _make_material(MASSIF_SHADER)
 			_copy_pbr(original.surface_get_material(surface) as StandardMaterial3D, material)
 			material.set_shader_parameter("map_size", Vector2(map.width, map.height))
-			material.set_shader_parameter("hex_size", MapStyle.HEX_SIZE)
+			material.set_shader_parameter("hex_size", MapStyle.WORLD_HEX_RADIUS)
 			material.set_shader_parameter("edge_fade", float(cfg["edge_fade"]))
 			material.set_shader_parameter("edge_albedo", load(str(cfg["edge_albedo"])))
 			var rect: Array = cfg["fit_rect"]
@@ -562,13 +564,19 @@ func set_reveal_all(value: bool) -> void:
 
 ## Позиция центра клетки на общей плоскости, в копии, ближайшей к точке near_x.
 func tile_world(i: int, near_x: float = INF) -> Vector3:
+	return tile_local(i, near_x) * MapStyle.WORLD_HEX_RADIUS
+
+
+## Позиция для моделей единичного размера; near_x задаётся камерой в мировых координатах.
+func tile_local(i: int, near_x: float = INF) -> Vector3:
 	var p := _tile_pos(i)
 	if map_is_water(i):
 		p.y = MapStyle.WATER_Y
 	if not reveal_all and viewer != null and not viewer.is_revealed(i):
 		p.y = MapStyle.H_FLAT   # разведанная карта и пелена имеют общий уровень
 	if near_x != INF:
-		p.x += round((near_x - p.x) / world_width) * world_width
+		var local_width := game.state.map.grid.world_width(MapStyle.HEX_SIZE)
+		p.x += round((near_x / MapStyle.WORLD_HEX_RADIUS - p.x) / local_width) * local_width
 	return p
 
 
@@ -590,7 +598,7 @@ func pick_tile(origin: Vector3, dir: Vector3) -> int:
 			return -1
 		var hit := origin + dir * t
 		var x := fposmod(hit.x, world_width)
-		tile = grid.index_at_world(x, hit.z, MapStyle.HEX_SIZE)
+		tile = grid.index_at_world(x, hit.z, MapStyle.WORLD_HEX_RADIUS)
 		if tile < 0:
 			return -1
 		var ny := tile_world(tile).y

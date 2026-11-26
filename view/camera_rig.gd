@@ -30,8 +30,8 @@ func _ready() -> void:
 
 func setup(map_world_width: float, map_world_depth: float) -> void:
 	world_width = map_world_width
-	min_z = 1.0
-	max_z = map_world_depth - 1.0
+	min_z = 0.0
+	max_z = map_world_depth
 
 
 func focus(p: Vector3) -> void:
